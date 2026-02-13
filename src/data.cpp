@@ -35,3 +35,4 @@ float todayEnergy = 0.0;
 bool myFlag = false;
 uint8_t is_redraw = 0;
 uint8_t u8log_buffer[32 * 8];
+bool res = false;

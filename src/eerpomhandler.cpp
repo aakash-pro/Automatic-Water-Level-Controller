@@ -1,4 +1,5 @@
 #include "eepromhandler.h"
+#include "hardware.h"
 
 
 void loadValuesFromEEPROM()
@@ -45,3 +46,4 @@ void clearEEPROM() {
   EEPROM.commit();
   EEPROM.end();
 }
+

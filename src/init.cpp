@@ -52,8 +52,11 @@ const char *wifiStatusToString(wl_status_t status)
 
 bool connectWifi(uint32_t timeout_ms)
 {
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  
+  res = wm.autoConnect("Pump Controller", "12345678");
+  if (!res)
+    return false;
+
   uint32_t start = millis();
   while (WiFi.status() != WL_CONNECTED)
   {

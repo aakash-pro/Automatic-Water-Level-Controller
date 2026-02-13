@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <MUIU8g2.h>
-#include <ESP8266WiFi.h>
+#include <WiFiManager.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 #include <WiFiUdp.h>

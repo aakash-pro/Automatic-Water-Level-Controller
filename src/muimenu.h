@@ -4,6 +4,7 @@
 #include "data.h"
 
 uint8_t mui_hrule(mui_t *ui, uint8_t msg);
+uint8_t mui_reset_cb(mui_t *ui, uint8_t msg);
 
 constexpr muif_t muif_list[] = {
     /* normal text style */
@@ -18,6 +19,7 @@ constexpr muif_t muif_list[] = {
     /* main menu */
     MUIF_RO("GP", mui_u8g2_goto_data),
     MUIF_BUTTON("GC", mui_u8g2_goto_form_w1_pi),
+    MUIF_BUTTON("RS", mui_reset_cb),
 
     /* DRY RUN FIELDS */
     MUIF_VARIABLE("DE", &dry_run_cutoff_protection, mui_u8g2_u8_opt_line_wa_mud_pi),
@@ -125,5 +127,6 @@ constexpr fds_t fds_data[] =
             MUI_LABEL(5, 10, "Reset Controller")
                 MUI_XY("HR", 0, 13)
                     MUI_STYLE(0)
-                        MUI_LABEL(5, 30, "Press SELECT to reset");
+                        MUI_XY("RS", 5, 30)
+                            MUI_LABEL(20, 30, "Press SELECT to reset");
 ;

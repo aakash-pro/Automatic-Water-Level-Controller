@@ -1,8 +1,6 @@
 #pragma once
 #include "libraries.h"
 
-constexpr const char *WIFI_SSID = "HOME-4G";
-constexpr const char *WIFI_PASSWORD = "Delhi@1705";
 constexpr const char *PUMP_IP = "192.168.50.202";
 constexpr const char *TANK_IP = "192.168.50.181";
 
@@ -35,4 +33,7 @@ extern float todayEnergy;
 extern bool myFlag;
 extern uint8_t is_redraw;
 extern uint8_t u8log_buffer[];
+
+//////////////////////
+extern bool res;
 

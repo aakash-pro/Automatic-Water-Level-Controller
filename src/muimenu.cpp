@@ -1,4 +1,5 @@
 #include "muimenu.h"
+#include "reset.h"
 
 
 uint8_t mui_hrule(mui_t *ui, uint8_t msg)
@@ -8,3 +9,11 @@ uint8_t mui_hrule(mui_t *ui, uint8_t msg)
   return 0;
 }
 
+uint8_t mui_reset_cb(mui_t *ui, uint8_t msg)
+{
+    if (msg == MUIF_MSG_CURSOR_SELECT)
+    {
+        reset();   // your reset function
+    }
+    return 0;
+}

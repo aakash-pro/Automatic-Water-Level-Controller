@@ -10,6 +10,7 @@ extern RTC_PCF8563 rtc;
 extern MUIU8G2 mui;
 extern WiFiUDP ntpUDP;
 extern NTPClient timeClient;
+extern WiFiManager wm;
 
 
 

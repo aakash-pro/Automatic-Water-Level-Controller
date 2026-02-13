@@ -4,6 +4,8 @@
 
 void saveValuesToEEPROM();
 void loadValuesFromEEPROM();
+void clearEEPROM();
+void reset();
 
 constexpr uint8_t EEPROM_dry_run_cutoff_protection_ADDR = 0;
 constexpr uint8_t EEPROM_dry_run_cutoff_power_1_ADDR = 1;
