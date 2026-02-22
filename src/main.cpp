@@ -11,6 +11,8 @@
 #include "dashboard.h"
 #include "pumpcontrol.h"
 #include "tankfullprotection.h"
+#include "checkpumpdryrunprotection.h"
+#include "checkpumpoverloadprotection.h"
 #include "webserver.h"
 
 
@@ -141,6 +143,8 @@ void loop()
       showDashboard();
       updateledstrip();
       checktankfullprotection();
+      checkpumpdryrunprotection();
+      checkpumpoverloadprotection();
   }
   
   // Handle web server requests

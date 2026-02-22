@@ -1,135 +1,98 @@
 
 #include "pumpcontrol.h"
+#define RELAY_PORT 80
 
+AsyncClient pumpClient;
 
-void turnOnPumpAsync() {
-    static bool requestInProgress = false;
-    if (requestInProgress) return;
+struct PumpContext {
+    bool requestInProgress = false;
+    bool responseReceived = false;
+    char buffer[256];
+    size_t len = 0;
+};
+
+PumpContext pumpCtx;
+
+void pumpRequest(const char* command)
+{
+    if (pumpCtx.requestInProgress)
+        return;
+
     if (WiFi.status() != WL_CONNECTED)
         return;
 
-    requestInProgress = true;
-    String hostRelay = String(PUMP_IP);
-    uint16_t port = 80;
-    String requestRelay = String("GET /cm?cmnd=Power%20ON HTTP/1.1\r\nHost: ") + hostRelay + "\r\nConnection: close\r\n\r\n";
+    pumpCtx.requestInProgress = true;
+    pumpCtx.responseReceived = false;
+    pumpCtx.len = 0;
 
-    struct ClientContext {
-        AsyncClient* client;
-        String responseBuffer;
-        bool isClosed = false;
-    };
-    ClientContext* ctx = new ClientContext();
-    ctx->client = new AsyncClient();
+    pumpClient.onConnect([](void* arg, AsyncClient* client)
+    {
+        char request[128];
 
-    ctx->client->onConnect([ctx, requestRelay](void* arg, AsyncClient* c) {
-        if (c->space() > requestRelay.length()) {
-            c->write(requestRelay.c_str());
-        }
-    }, nullptr);
+        snprintf(request, sizeof(request),
+            "GET /cm?cmnd=Power%%20%s HTTP/1.1\r\n"
+            "Host: %s\r\n"
+            "Connection: close\r\n\r\n",
+            (const char*)arg,
+            PUMP_IP
+        );
 
-    ctx->client->onData([ctx](void* arg, AsyncClient* c, void* data, size_t len) {
-        ctx->responseBuffer += String((char*)data).substring(0, len);
-        int jsonStart = ctx->responseBuffer.indexOf('{');
-        int jsonEnd = ctx->responseBuffer.lastIndexOf('}');
-        if (jsonStart >= 0 && jsonEnd > jsonStart) {
-            String jsonStr = ctx->responseBuffer.substring(jsonStart, jsonEnd + 1);
-            StaticJsonDocument<256> doc;
-            DeserializationError err = deserializeJson(doc, jsonStr);
-            if (!err) {
-                String relayState = doc["POWER"] | String("");
-                // Optionally update pump_running or log result here
+        client->write(request);
+
+    }, (void*)command);
+
+
+    pumpClient.onData([](void* arg, AsyncClient* client, void* data, size_t len)
+    {
+        if (pumpCtx.len + len >= sizeof(pumpCtx.buffer))
+            return;
+
+        memcpy(pumpCtx.buffer + pumpCtx.len, data, len);
+        pumpCtx.len += len;
+        pumpCtx.buffer[pumpCtx.len] = 0;
+
+        char* jsonStart = strchr(pumpCtx.buffer, '{');
+        char* jsonEnd = strrchr(pumpCtx.buffer, '}');
+
+        if (jsonStart && jsonEnd)
+        {
+            StaticJsonDocument<128> doc;
+
+            if (deserializeJson(doc, jsonStart) == DeserializationError::Ok)
+            {
+                const char* state = doc["POWER"];
+                pumpCtx.responseReceived = true;
             }
         }
-    }, nullptr);
 
-    ctx->client->onError([ctx](void* arg, AsyncClient* c, int8_t error) {
-        if (!ctx->isClosed) {
-            ctx->isClosed = true;
-            c->close();
-            delete ctx->client;
-            delete ctx;
-            requestInProgress = false;
-        }
-    }, nullptr);
+    }, NULL);
 
-    ctx->client->onDisconnect([ctx](void* arg, AsyncClient* c) {
-        if (!ctx->isClosed) {
-            ctx->isClosed = true;
-            delete ctx->client;
-            delete ctx;
-            requestInProgress = false;
-        }
-    }, nullptr);
 
-    if (!ctx->client->connect(hostRelay.c_str(), port)) {
-        delete ctx->client;
-        delete ctx;
-        requestInProgress = false;
-    }
+    pumpClient.onDisconnect([](void* arg, AsyncClient* client)
+    {
+        pumpCtx.requestInProgress = false;
+        pumpCtx.len = 0;
+    }, NULL);
+
+
+    pumpClient.onError([](void* arg, AsyncClient* client, int8_t error)
+    {
+        pumpCtx.requestInProgress = false;
+    }, NULL);
+
+
+    pumpClient.connect(PUMP_IP, RELAY_PORT);
 }
 
-void turnOffPumpAsync() {
-    static bool requestInProgress = false;
-    if (requestInProgress) return;
-    if (WiFi.status() != WL_CONNECTED)
-        return;
 
-    requestInProgress = true;
-    String hostRelay = String(PUMP_IP);
-    uint16_t port = 80;
-    String requestRelay = String("GET /cm?cmnd=Power%20OFF HTTP/1.1\r\nHost: ") + hostRelay + "\r\nConnection: close\r\n\r\n";
 
-    struct ClientContext {
-        AsyncClient* client;
-        String responseBuffer;
-        bool isClosed = false;
-    };
-    ClientContext* ctx = new ClientContext();
-    ctx->client = new AsyncClient();
+void turnOnPumpAsync()
+{
+    pumpRequest("ON");
+}
 
-    ctx->client->onConnect([ctx, requestRelay](void* arg, AsyncClient* c) {
-        if (c->space() > requestRelay.length()) {
-            c->write(requestRelay.c_str());
-        }
-    }, nullptr);
 
-    ctx->client->onData([ctx](void* arg, AsyncClient* c, void* data, size_t len) {
-        ctx->responseBuffer += String((char*)data).substring(0, len);
-        int jsonStart = ctx->responseBuffer.indexOf('{');
-        int jsonEnd = ctx->responseBuffer.lastIndexOf('}');
-        if (jsonStart >= 0 && jsonEnd > jsonStart) {
-            String jsonStr = ctx->responseBuffer.substring(jsonStart, jsonEnd + 1);
-            StaticJsonDocument<256> doc;
-            DeserializationError err = deserializeJson(doc, jsonStr);
-            if (!err) {
-                String relayState = doc["POWER"] | String("");
-                // Optionally update pump_running or log result here
-            }
-        }
-    }, nullptr);
-
-    ctx->client->onError([ctx](void* arg, AsyncClient* c, int8_t error) {
-        if (!ctx->isClosed) {
-            ctx->isClosed = true;
-            c->close();
-            delete ctx->client;
-            delete ctx;
-            requestInProgress = false;
-        }
-    }, nullptr);
-
-    ctx->client->onDisconnect([ctx](void* arg, AsyncClient* c) {
-        if (!ctx->isClosed) {
-            ctx->isClosed = true;
-            delete ctx->client;
-            delete ctx;
-            requestInProgress = false;
-        }
-    }, nullptr);
-
-    if (!ctx->client->connect(hostRelay.c_str(), port)) {
-        delete ctx->client;
-        delete ctx;
-        requestInProgress = false;
-    }
+void turnOffPumpAsync()
+{
+    pumpRequest("OFF");
 }

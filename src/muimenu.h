@@ -27,7 +27,16 @@ constexpr muif_t muif_list[] = {
     MUIF_U8G2_U8_MIN_MAX("DB", &dry_run_cutoff_power_2, 0, 9, mui_u8g2_u8_min_max_wm_mud_pi),
     MUIF_U8G2_U8_MIN_MAX("DC", &dry_run_cutoff_power_3, 0, 9, mui_u8g2_u8_min_max_wm_mud_pi),
     MUIF_U8G2_U8_MIN_MAX("DD", &dry_run_cutoff_power_4, 0, 9, mui_u8g2_u8_min_max_wm_mud_pi),
-    MUIF_U8G2_U8_MIN_MAX("DS", &dry_run_cutoff_delay, 0, 200, mui_u8g2_u8_min_max_wm_mud_pi),
+    MUIF_U8G2_U8_MIN_MAX("DS", &dry_run_cutoff_delay, 0, 60, mui_u8g2_u8_min_max_wm_mud_pi),
+
+    /* Pump Overload Fields*/
+    MUIF_VARIABLE("OP", &overload_cutoff_protection, mui_u8g2_u8_opt_line_wa_mud_pi),
+    MUIF_U8G2_U8_MIN_MAX("OA", &overload_cutoff_power_1, 0, 1, mui_u8g2_u8_min_max_wm_mud_pi),
+    MUIF_U8G2_U8_MIN_MAX("OB", &overload_cutoff_power_2, 0, 9, mui_u8g2_u8_min_max_wm_mud_pi),
+    MUIF_U8G2_U8_MIN_MAX("OC", &overload_cutoff_power_3, 0, 9, mui_u8g2_u8_min_max_wm_mud_pi),
+    MUIF_U8G2_U8_MIN_MAX("OD", &overload_cutoff_power_4, 0, 9, mui_u8g2_u8_min_max_wm_mud_pi),
+    MUIF_U8G2_U8_MIN_MAX("OS", &overload_cutoff_delay, 0, 60, mui_u8g2_u8_min_max_wm_mud_pi),
+
 
     /*TANK FULL PROTECTION FIELDS*/
     MUIF_VARIABLE("TP", &tank_full_cutoff_protection, mui_u8g2_u8_opt_line_wa_mud_pi),
@@ -97,11 +106,11 @@ constexpr fds_t fds_data[] =
                 MUI_XY("HR", 0, 13)
                     MUI_STYLE(0)
 
-                        MUI_XYAT("PS", 10, 28, 0, "Dash-1")
-                            MUI_XYAT("PS", 10, 40, 1, "Dash-2")
+                        MUI_XYAT("PS", 10, 28, 1, "Dash-1")
+                            MUI_XYAT("PS", 10, 40, 2, "Dash-2")
 
-                                MUI_XYAT("PS", 65, 28, 2, "Dash-3")
-                                    MUI_XYAT("PS", 65, 40, 3, "Dash-4")
+                                MUI_XYAT("PS", 65, 28, 3, "Dash-3")
+                                    MUI_XYAT("PS", 65, 40, 4, "Dash-4")
 
     /* Scheduler*/
     MUI_FORM(13)
@@ -116,10 +125,10 @@ constexpr fds_t fds_data[] =
             MUI_LABEL(5, 10, "Level Strip Settings")
                 MUI_XY("HR", 0, 13)
                     MUI_STYLE(0)
-                        MUI_XYAT("LS", 10, 28, 0, "Type-1")
-                            MUI_XYAT("LS", 10, 40, 1, "Type-2")
-                                MUI_XYAT("LS", 65, 28, 2, "Type-3")
-                                    MUI_XYAT("LS", 65, 40, 3, "Type-4")
+                        MUI_XYAT("LS", 10, 28, 1, "Type-1")
+                            MUI_XYAT("LS", 10, 40, 2, "Type-2")
+                                MUI_XYAT("LS", 65, 28, 3, "Type-3")
+                                    MUI_XYAT("LS", 65, 40, 4, "Type-4")
 
     /* Reset Setings */
     MUI_FORM(15)

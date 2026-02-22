@@ -216,16 +216,16 @@ inline void drawDashboard_4() {
 
 void showDashboard() {
     switch (dashboard_style) {
-        case 0:
+        case 1:
             drawDashboard_1();
             break;
-        case 1:
+        case 2:
             drawDashboard_2();
             break;
-        case 2:
+        case 3:
             drawDashboard_3();
             break;
-        case 3:
+        case 4:
             drawDashboard_4();
             break;
         

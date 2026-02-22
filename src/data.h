@@ -7,6 +7,7 @@ constexpr const char *TANK_IP = "192.168.50.181";
 constexpr uint8_t BTN_DOWN = 2, BTN_UP = 14, BTN_ESC = 12, BTN_SEL = 13;
 
 extern uint8_t dry_run_cutoff_protection, dry_run_cutoff_power_1, dry_run_cutoff_power_2, dry_run_cutoff_power_3, dry_run_cutoff_power_4, dry_run_cutoff_delay;
+extern uint8_t overload_cutoff_protection, overload_cutoff_power_1, overload_cutoff_power_2, overload_cutoff_power_3, overload_cutoff_power_4, overload_cutoff_delay;
 extern uint8_t tank_full_cutoff_protection, tank_full_cutoff_level, tank_full_cutoff_delay;
 extern uint8_t dashboard_style, led_strip_style;
 extern volatile uint32_t lastFlowCount;
