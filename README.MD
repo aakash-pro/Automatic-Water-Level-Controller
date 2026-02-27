@@ -1,12 +1,10 @@
-# 💧 Automatic Water Level Controller
-
-### ESP8266 (NodeMCU) + Tasmota Based Smart Pump Automation System
+# 💧 Smart Water Pump & Tank Management System.
 
 A fully automated, WiFi-enabled **Smart Water Tank Management System**
-built using **NodeMCU (ESP8266)** and **Tasmota firmware**.\
+built using **NodeMCU (ESP8266)** and **Tasmota Based Smart Plug**.\
 This system intelligently monitors tank levels, protects the pump from
-dry-run damage, prevents overflow, and provides a powerful web-based
-dashboard for real-time monitoring and scheduling.
+dry-run damage,overload damage, Prevents tank overflow , and provides a powerful web-based
+dashboard for real-time monitoring and pump scheduling.
 
 ------------------------------------------------------------------------
 
@@ -17,9 +15,9 @@ and a flow sensor.\
 It provides real-time monitoring through:
 
 -   128x64 LCD display\
--   WS2812 LED water level strip\
+-   WS2812 8-Led RGB Strip for tank level\
 -   Local web dashboard\
--   Calendar-based scheduling
+-   Linux-Cron based scheduling
 
 Designed for residential buildings, apartments, farms, and smart homes.
 
@@ -30,16 +28,18 @@ Designed for residential buildings, apartments, farms, and smart homes.
 ### 🔹 Controller Unit
 
 -   NodeMCU (ESP8266 based)
--   Tasmota Firmware
--   8 Water Level Sensors
--   Flow Sensor
--   128x64 I2C LCD
--   8-bit WS2812 LED Strip
+-   128x64 SPI LCD
+-   8-bit WS2812 RGB LED Strip
 
 ### 🔹 Pump Control Unit
 
--   Tasmota-based Smart Plug (Relay based)
+-   Tasmota-based Smart Plug (Relay based) with power monitoring capability.
 
+### Tank Monitoring Unit
+
+- 8 water level sensors ( Reed switch based ) 
+- Flow sensor YF-S201 
+- Flow & water level sensors connected to NODE MCU running tasmota.
 ------------------------------------------------------------------------
 
 ## ✨ Features
@@ -53,20 +53,22 @@ Designed for residential buildings, apartments, farms, and smart homes.
 
 ### 🛡️ Tank Full Protection
 
--   Automatically stops pump at maximum level
+-   Automatically stops pump at your desired tank level.
 -   Prevents overflow and water wastage
+-   Tracks & monitors water flow in LPM
 
 ### 🚱 Pump Dry Run Protection
 
 -   Flow sensor validation
+-   Pump power consumption Validation.
 -   If no water flow detected → Pump shuts down
--   Protects motor from overheating
+-   If Pumps consumes less power then desired -> Pump Shut down.
 
-### 📅 Calendar-Based Scheduling
+### 📅 Powerfull linux-cron based Pump scheduling.
 
--   Time-based pump operation
--   Custom daily scheduling
--   Ideal for borewell or municipal water timing
+-   User friendly scheduler on web dashboard.
+-   hourly , daily , weekly, alternate days , monthly schedules.
+
 
 ### 📶 Automatic WiFi Provisioning
 
@@ -80,79 +82,22 @@ Accessible via browser:
 
     http://device-ip
 
-Includes 4 Custom Dashboards: - 📊 Real-Time Monitoring - ⚙️ Pump
-Control - 📅 Schedule Management - 📈 Flow Analytics
+Includes 4 Custom LCD Dashboards: -
+📊 Real-Time Monitoring 
+- ⚙️ Pump Stats
+- 📅 Tank stats 
+- 📈 Flow Analytics
 
 Fully Local Control --- No Cloud Dependency.
 
-------------------------------------------------------------------------
-
-## 🔧 Hardware Requirements
-
-### Controller Side
-
--   NodeMCU (ESP8266)
--   8 Water Level Sensors (Float / Conductive)
--   Flow Sensor
--   128x64 I2C LCD
--   WS2812 LED Strip (8 LEDs)
--   5V Power Supply
-
-### Pump Control
-
--   Tasmota-compatible Smart Plug
-
-------------------------------------------------------------------------
-
-## ⚙️ Working Logic
-
-1.  System continuously monitors tank levels.
-2.  If level drops below threshold → Pump turns ON.
-3.  Flow sensor validates water movement.
-4.  If no flow detected → Dry run protection activates.
-5.  When tank becomes full → Pump turns OFF automatically.
-6.  Scheduled automation overrides manual control if enabled.
-
-------------------------------------------------------------------------
-
-## 🔐 Safety Mechanisms
-
--   Overflow protection
--   Dry run detection
--   Flow verification logic
--   Manual override support
--   Fail-safe reboot recovery
-
-------------------------------------------------------------------------
+________________________________________________________________________
 
 ## 🔗 Integration Support
 
 -   MQTT Compatible
 -   HTTP API Support
 -   Works with Home Automation Platforms
--   Can integrate with Home Assistant, OpenHAB, Node-RED
-
-------------------------------------------------------------------------
-
-## 📊 Advantages
-
-✔ Fully Local Control\
-✔ Low-Cost Hardware\
-✔ Energy Efficient\
-✔ Expandable Architecture\
-✔ Robust Safety Design
-
-------------------------------------------------------------------------
-
-## 🛠️ Future Enhancements
-
--   Mobile App Integration
--   SMS Alerts
--   Cloud Logging
--   Historical Data Analytics
--   AI-Based Water Usage Prediction
-
-------------------------------------------------------------------------
+-   Can integrate with Home Assistant
 
 ## 📜 License
 
