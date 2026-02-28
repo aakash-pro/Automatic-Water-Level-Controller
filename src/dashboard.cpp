@@ -100,7 +100,7 @@ inline void drawDashboard_1()
   u8g2.drawStr(0, 34, buf);
   snprintf(buf, sizeof(buf), "Amps: %.1fA", current);
   u8g2.drawStr(0, 46, buf);
-  snprintf(buf, sizeof(buf), "TFP:%s", tank_full_cutoff_protection ? "OFF" : "ON");
+  snprintf(buf, sizeof(buf), "TFP:%s", tank_full_cutoff_protection ? "ON" : "OFF");
   u8g2.drawStr(0, 58, buf);
   
 
@@ -109,38 +109,55 @@ inline void drawDashboard_1()
 
 inline void drawDashboard_2() {
     u8g2.clearBuffer();
-    u8g2.setFont(u8g2_font_6x10_tr);
-
-    // RTC time in 12H format at top
-    DateTime now = rtc.now();
-    uint8_t hour = now.hour() % 12;
-    if (hour == 0) hour = 12;
-  char timeBuf[16];
-    snprintf(timeBuf, sizeof(timeBuf), "%02d:%02d:%02d %s", hour, now.minute(), now.second(), now.hour() < 12 ? "AM" : "PM");
-    u8g2.drawStr(0, 10, timeBuf);
-
-    // Pump status
-    u8g2.drawStr(0, 22, "Pump:");
-    u8g2.drawStr(35, 22, pump_running ? "RUNNING" : "STOPPED");
-
-    // Tank status
-    u8g2.drawStr(0, 34, "Tank:");
-    u8g2.drawStr(35, 34, tank_full ? "FULL" : "NOT FULL");
-
-    // Water level bar
-    uint8_t level = 0;
-    for (int i = 0; i < 8; i++) if (waterLevel[i]) level++;
-    u8g2.drawFrame(0, 46, 64, 8);
-    u8g2.drawBox(0, 47, level * 8, 6);
-    char lvlBuf[12];
-    snprintf(lvlBuf, sizeof(lvlBuf), "Lvl:%d/8", level);
-    u8g2.drawStr(70, 54, lvlBuf);
-
-    // Power
-    char powerBuf[16];
-    snprintf(powerBuf, sizeof(powerBuf), "Pwr:%.1fW", power);
-    u8g2.drawStr(0, 62, powerBuf);
-
+    u8g2.setFont(u8g2_font_5x7_tr); // Smaller font for more content
+    
+    // Title
+    u8g2.drawStr(30, 8, "DIAGNOSTICS");
+    
+    // LEFT COLUMN: Dry Run & Tank Full
+    u8g2.setFont(u8g2_font_5x7_tf); // Bold font for section titles
+    u8g2.drawStr(0, 17, "DRY RUN:");
+    u8g2.setFont(u8g2_font_5x7_tr);
+    u8g2.drawStr(0, 25, dry_run_cutoff_protection ? "En" : "Dis");
+    uint16_t dry_power = (dry_run_cutoff_power_1 * 1000) + (dry_run_cutoff_power_2 * 100) + 
+                         (dry_run_cutoff_power_3 * 10) + dry_run_cutoff_power_4;
+    char buf[16];
+    snprintf(buf, sizeof(buf), "Pwr:%dW", dry_power);
+    u8g2.drawStr(0, 33, buf);
+    snprintf(buf, sizeof(buf), "Dly:%ds", dry_run_cutoff_delay);
+    u8g2.drawStr(0, 41, buf);
+    
+    // Tank Full
+    u8g2.setFont(u8g2_font_5x7_tf);
+    u8g2.drawStr(0, 50, "TANK FULL:");
+    u8g2.setFont(u8g2_font_5x7_tr);
+    u8g2.drawStr(0, 58, tank_full_cutoff_protection ? "En" : "Dis");
+    snprintf(buf, sizeof(buf), "L:%d", tank_full_cutoff_level);
+    u8g2.drawStr(20, 58, buf);
+    snprintf(buf, sizeof(buf), "D:%ds", tank_full_cutoff_delay);
+    u8g2.drawStr(0, 64, buf);
+    
+    // RIGHT COLUMN: Overload & Styles
+    u8g2.setFont(u8g2_font_5x7_tf);
+    u8g2.drawStr(66, 17, "OVERLOAD:");
+    u8g2.setFont(u8g2_font_5x7_tr);
+    u8g2.drawStr(66, 25, overload_cutoff_protection ? "En" : "Dis");
+    uint16_t overload_power = (overload_cutoff_power_1 * 1000) + (overload_cutoff_power_2 * 100) + 
+                              (overload_cutoff_power_3 * 10) + overload_cutoff_power_4;
+    snprintf(buf, sizeof(buf), "Pwr:%dW", overload_power);
+    u8g2.drawStr(66, 33, buf);
+    snprintf(buf, sizeof(buf), "Dly:%ds", overload_cutoff_delay);
+    u8g2.drawStr(66, 41, buf);
+    
+    // Styles at bottom right
+    u8g2.setFont(u8g2_font_5x7_tf);
+    u8g2.drawStr(66, 50, "STYLES:");
+    u8g2.setFont(u8g2_font_5x7_tr);
+    snprintf(buf, sizeof(buf), "D:%d", dashboard_style);
+    u8g2.drawStr(66, 58, buf);
+    snprintf(buf, sizeof(buf), "L:%d", led_strip_style);
+    u8g2.drawStr(95, 58, buf);
+    
     u8g2.sendBuffer();
 }
 

@@ -190,7 +190,7 @@
             </div>
             <div class="gauges-inner-grid">
                 
-                <canvas data-type="linear-gauge" data-width="150" data-height="400" data-border-radius="10" data-borders="0"
+                <canvas id="tankGauge1" data-type="linear-gauge" data-width="150" data-height="400" data-border-radius="10" data-borders="0"
                     data-bar-begin-circle="false" data-title="Tank 1" data-units="Tank level" data-minor-ticks="2" data-value="0"
                     data-min-value="0" data-max-value="8" data-major-ticks="0,1,2,3,4,5,6,7,8" data-highlights='[
                             
@@ -201,7 +201,7 @@
                     data-animation-duration="1500" data-bar-stroke-width="5" data-value-box-border-radius="0"
                     data-value-text-shadow="false" width="240" height="900" style="width: 160px; height: 600px;"></canvas>
             
-                <canvas data-type="linear-gauge" data-width="150" data-height="400" data-border-radius="10" data-borders="0"
+                <canvas id="tankGauge2" data-type="linear-gauge" data-width="150" data-height="400" data-border-radius="10" data-borders="0"
                     data-bar-begin-circle="false" data-title="Tank 2" data-units="Tank level" data-minor-ticks="2" data-value="0"
                     data-min-value="0" data-max-value="8" data-major-ticks="0,1,2,3,4,5,6,7,8" data-highlights='[
                             
@@ -212,7 +212,7 @@
                     data-animation-duration="1500" data-bar-stroke-width="5" data-value-box-border-radius="0"
                     data-value-text-shadow="false" width="240" height="900" style="width: 160px; height: 600px;"></canvas>
             
-                <canvas data-type="linear-gauge" data-width="150" data-height="400" data-border-radius="10" data-borders="0"
+                <canvas id="tankGauge3" data-type="linear-gauge" data-width="150" data-height="400" data-border-radius="10" data-borders="0"
                     data-bar-begin-circle="false" data-title="Tank 3" data-units=" Tank level" data-minor-ticks="2" data-value="0"
                     data-min-value="0" data-max-value="8" data-major-ticks="0,1,2,3,4,5,6,7,8" data-highlights='[
                             
@@ -306,10 +306,10 @@
                     <div class="protection-row">
                         <label for="dashboardSelect">Dashboard</label>
                         <select id="dashboardSelect">
-                            <option>Dashboard1</option>
-                            <option>Dashboard2</option>
-                            <option>Dashboard3</option>
-                            <option>Dashboard4</option>
+                            <option value="1">Dashboard1</option>
+                            <option value="2">Dashboard2</option>
+                            <option value="3">Dashboard3</option>
+                            <option value="4">Dashboard4</option>
                         </select>
                     </div>
                     <div class="protection-row">
@@ -321,10 +321,10 @@
                     <div class="protection-row">
                         <label for="ledStyleSelect">Style</label>
                         <select id="ledStyleSelect">
-                            <option>Style1</option>
-                            <option>Style2</option>
-                            <option>Style3</option>
-                            <option>Style4</option>
+                            <option value="1">Style1</option>
+                            <option value="2">Style2</option>
+                            <option value="3">Style3</option>
+                            <option value="4">Style4</option>
                         </select>
                     </div>
                     <div class="protection-row">

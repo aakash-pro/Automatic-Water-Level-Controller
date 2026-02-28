@@ -17,7 +17,7 @@
 #include "beep.h"
 
 void setup()
-{ 
+{
   strip.begin();
   strip.show();
   strip.setPixelColor(0, strip.Color(0, 0, 0));
@@ -48,11 +48,10 @@ void setup()
   u8g2.setFontMode(1);
   mui.begin(u8g2, fds_data, muif_list, sizeof(muif_list) / sizeof(muif_t));
   loadValuesFromEEPROM();
-  initWebServer();
+
   initialization();
-
+  initWebServer();
 }
-
 
 void loop()
 {
@@ -89,7 +88,7 @@ void loop()
         beep(40);
       }
     }
-    
+
     break;
   case U8X8_MSG_GPIO_MENU_UP:
     if (mui.isFormActive())
@@ -98,9 +97,10 @@ void loop()
       is_redraw = 1;
       beep(40);
     }
-    else{
+    else
+    {
       beep(40);
-      turnOnPumpAsync();
+       turnOnPumpAsync();
     }
     break;
   case U8X8_MSG_GPIO_MENU_DOWN:
@@ -110,72 +110,70 @@ void loop()
       is_redraw = 1;
       beep(40);
     }
-    else{
+    else
+    {
       beep(40);
       turnOffPumpAsync();
     }
     break;
   }
-  if (mui.isFormActive()) {
-    if (is_redraw) {
+  if (mui.isFormActive())
+  {
+    if (is_redraw)
+    {
       u8g2.firstPage();
-      do {
+      do
+      {
         mui.draw();
       } while (u8g2.nextPage());
       is_redraw = 0;
     }
-  } else {
-    
+    handleBeep();
+  }
+  else
+  {
+
     unsigned long now = millis();
 
-    if (!relayCtx.requestInProgress) {
-    if (relayCtx.readyForNext || 
-       (relayCtx.retryAfter > 0 && now >= relayCtx.retryAfter)) {
+    if (!relayCtx.requestInProgress)
+    {
+      if (relayCtx.readyForNext ||
+          (relayCtx.retryAfter > 0 && now >= relayCtx.retryAfter))
+      {
         relayCtx.readyForNext = false;
         relayCtx.retryAfter = 0;
         fetchplug();
+      }
     }
-}
 
-if (!energyCtx.requestInProgress) {
-    if (energyCtx.readyForNext || 
-       (energyCtx.retryAfter > 0 && now >= energyCtx.retryAfter)) {
+    if (!energyCtx.requestInProgress)
+    {
+      if (energyCtx.readyForNext ||
+          (energyCtx.retryAfter > 0 && now >= energyCtx.retryAfter))
+      {
         energyCtx.readyForNext = false;
         energyCtx.retryAfter = 0;
         fetchplugEnergy();
+      }
     }
-}
 
-if (!tankCtx.requestInProgress) {
-    if (tankCtx.readyForNext || 
-       (tankCtx.retryAfter > 0 && now >= tankCtx.retryAfter)) {
+    if (!tankCtx.requestInProgress)
+    {
+      if (tankCtx.readyForNext ||
+          (tankCtx.retryAfter > 0 && now >= tankCtx.retryAfter))
+      {
         tankCtx.readyForNext = false;
         tankCtx.retryAfter = 0;
         fetchtank();
+      }
     }
-}
 
-    
-
-    
-   
-      showDashboard();
-      updateledstrip();
-      checktankfullprotection();
-      checkpumpdryrunprotection();
-      checkpumpoverloadprotection();
-      handleBeep();
-      handleWebServer();
+    showDashboard();
+    updateledstrip();
+    checktankfullprotection();
+    checkpumpdryrunprotection();
+    checkpumpoverloadprotection();
+    handleBeep();
+    handleWebServer();
   }
-   
 }
-
-
-
-
-
-
-
-
-
-

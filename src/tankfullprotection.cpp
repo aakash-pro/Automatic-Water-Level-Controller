@@ -7,7 +7,7 @@ void checktankfullprotection()
   static bool tankFullDelayActive = false;
   static unsigned long lastBeepTime = 0;
   static bool tankFullProtectionTripped = false;
-  if (!tank_full_cutoff_protection && pump_running && waterLevel[tank_full_cutoff_level - 1])
+  if (tank_full_cutoff_protection && pump_running && waterLevel[tank_full_cutoff_level - 1])
   {
     if (!tankFullDelayActive)
     {

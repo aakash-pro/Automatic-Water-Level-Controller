@@ -78,61 +78,72 @@ function updateDashboard() {
     const sel = document.getElementById('dashboardSelect');
     const btn = document.getElementById('dashboardUpdateBtn');
     if (!sel || !btn) return;
-    const value = sel.value;
-    console.log('Dashboard selection updated to', value);
-    btn.textContent = 'Updated';
-    setTimeout(() => btn.textContent = 'Update', 1200);
+    const payload = { dashboard_style: parseInt(sel.value || 1, 10) };
+    saveConfigToServer(payload, function(err){
+        if (btn) { 
+            btn.textContent = err ? 'Error' : 'Updated'; 
+            setTimeout(()=>btn.textContent='Update',1200); 
+        }
+    });
 }
 
 function updateLedStyle() {
     const sel = document.getElementById('ledStyleSelect');
     const btn = document.getElementById('ledStyleUpdateBtn');
     if (!sel || !btn) return;
-    const value = sel.value;
-    console.log('LED style updated to', value);
-    btn.textContent = 'Updated';
-    setTimeout(() => btn.textContent = 'Update', 1200);
+    const payload = { led_strip_style: parseInt(sel.value || 1, 10) };
+    saveConfigToServer(payload, function(err){
+        if (btn) { 
+            btn.textContent = err ? 'Error' : 'Updated'; 
+            setTimeout(()=>btn.textContent='Update',1200); 
+        }
+    });
 }
 
 function updateDryRunProtection() {
     clampNumberInput('dryrunCutoff', 0, 9999);
     clampNumberInput('dryrunDelay', 0, 60);
-    const btn = document.getElementById('dryrunUpdateBtn');
-    if (!btn) return;
-    btn.textContent = 'Updated';
-    setTimeout(() => btn.textContent = 'Update', 1200);
-    console.log('Dry run protection updated', {
-        enabled: dryRunEnabled,
-        cutoff: document.getElementById('dryrunCutoff').value,
-        delay: document.getElementById('dryrunDelay').value
+    const powerValue = parseInt(document.getElementById('dryrunCutoff')?.value || 0, 10);
+    const payload = {
+        dry_run_cutoff_protection: dryRunEnabled ? 1 : 0,
+        dry_run_cutoff_power_1: Math.floor(powerValue / 1000) % 10,
+        dry_run_cutoff_power_2: Math.floor(powerValue / 100) % 10,
+        dry_run_cutoff_power_3: Math.floor(powerValue / 10) % 10,
+        dry_run_cutoff_power_4: powerValue % 10,
+        dry_run_cutoff_delay: parseInt(document.getElementById('dryrunDelay')?.value || 0, 10)
+    };
+    saveConfigToServer(payload, function(err){
+        const btn = document.getElementById('dryrunUpdateBtn'); if (btn) { btn.textContent = err ? 'Error' : 'Updated'; setTimeout(()=>btn.textContent='Update',1200); }
     });
 }
 
 function updateTankProtection() {
     clampNumberInput('tankCutoff', 1, 8);
     clampNumberInput('tankDelay', 0, 200);
-    const btn = document.getElementById('tankUpdateBtn');
-    if (!btn) return;
-    btn.textContent = 'Updated';
-    setTimeout(() => btn.textContent = 'Update', 1200);
-    console.log('Tank protection updated', {
-        enabled: tankFullEnabled,
-        cutoff: document.getElementById('tankCutoff').value,
-        delay: document.getElementById('tankDelay').value
+    const payload = {
+        tank_full_cutoff_protection: tankFullEnabled ? 1 : 0,
+        tank_full_cutoff_level: parseInt(document.getElementById('tankCutoff')?.value || 1, 10),
+        tank_full_cutoff_delay: parseInt(document.getElementById('tankDelay')?.value || 0, 10)
+    };
+    saveConfigToServer(payload, function(err){
+        const btn = document.getElementById('tankUpdateBtn'); if (btn) { btn.textContent = err ? 'Error' : 'Updated'; setTimeout(()=>btn.textContent='Update',1200); }
     });
 }
 
 function updateOverloadProtection() {
-    clampNumberInput('overloadCutoff', 1200, 9999);
+    clampNumberInput('overloadCutoff', 0, 9999);
     clampNumberInput('overloadDelay', 0, 60);
-    const btn = document.getElementById('overloadUpdateBtn');
-    if (!btn) return;
-    btn.textContent = 'Updated';
-    setTimeout(() => btn.textContent = 'Update', 1200);
-    console.log('Overload protection updated', {
-        enabled: overloadEnabled,
-        cutoff: document.getElementById('overloadCutoff').value,
-        delay: document.getElementById('overloadDelay').value
+    const powerValue = parseInt(document.getElementById('overloadCutoff')?.value || 0, 10);
+    const payload = {
+        overload_cutoff_protection: overloadEnabled ? 1 : 0,
+        overload_cutoff_power_1: Math.floor(powerValue / 1000) % 10,
+        overload_cutoff_power_2: Math.floor(powerValue / 100) % 10,
+        overload_cutoff_power_3: Math.floor(powerValue / 10) % 10,
+        overload_cutoff_power_4: powerValue % 10,
+        overload_cutoff_delay: parseInt(document.getElementById('overloadDelay')?.value || 0, 10)
+    };
+    saveConfigToServer(payload, function(err){
+        const btn = document.getElementById('overloadUpdateBtn'); if (btn) { btn.textContent = err ? 'Error' : 'Updated'; setTimeout(()=>btn.textContent='Update',1200); }
     });
 }
 
@@ -232,6 +243,46 @@ function fetchSensors() {
             const kwh = document.getElementById('kwhValue');
             if (kwh) kwh.textContent = parseFloat(data.todayEnergy || 0).toFixed(2);
         }
+        // Update radial gauges (Power, Voltage, Current)
+        if (document.gauges) {
+            // Update watts gauge
+            if (data.hasOwnProperty('power')) {
+                const pumpGauge = document.gauges[0]; // First radial gauge
+                if (pumpGauge) pumpGauge.value = parseFloat(data.power) || 0;
+            }
+            // Update voltage gauge
+            if (data.hasOwnProperty('voltage')) {
+                const voltGauge = document.gauges[1]; // Second radial gauge
+                if (voltGauge) voltGauge.value = parseFloat(data.voltage) || 0;
+            }
+            // Update current gauge
+            if (data.hasOwnProperty('current')) {
+                const currentGauge = document.gauges[2]; // Third radial gauge
+                if (currentGauge) currentGauge.value = parseFloat(data.current) || 0;
+            }
+            // Update flow gauge (linear)
+            if (data.hasOwnProperty('currentLPM')) {
+                const flowGauge = document.gauges[3]; // Fourth gauge (flow linear)
+                if (flowGauge) flowGauge.value = parseFloat(data.currentLPM) || 0;
+            }
+        }
+        // Update tank water level gauges
+        if (data.hasOwnProperty('waterLevel') && Array.isArray(data.waterLevel)) {
+            const tankGauges = [
+                { id: 'tankGauge1', levelIndex: 0 },
+                { id: 'tankGauge2', levelIndex: 1 },
+                { id: 'tankGauge3', levelIndex: 2 }
+            ];
+            tankGauges.forEach(tank => {
+                const canvas = document.getElementById(tank.id);
+                if (canvas && document.gauges) {
+                    const gauge = document.gauges.find(g => g.canvas === canvas);
+                    if (gauge && data.waterLevel[tank.levelIndex] !== undefined) {
+                        gauge.value = data.waterLevel[tank.levelIndex];
+                    }
+                }
+            });
+        }
         // Log other sensor values for future mapping to gauges
         console.log('Sensors:', data);
     }).catch(err=>console.error('fetchSensors', err));
@@ -242,15 +293,19 @@ function fetchConfig() {
         if (!cfg || typeof cfg !== 'object') return;
         // Dry run
         if (cfg.hasOwnProperty('dry_run_cutoff_protection')) {
-            const btn = document.getElementById('dryrunToggle');
+            const checkbox = document.getElementById('dryrunToggle');
             dryRunEnabled = !!cfg.dry_run_cutoff_protection;
-            if (btn) {
-                btn.textContent = dryRunEnabled ? 'Disable' : 'Enable';
-                btn.classList.toggle('active', dryRunEnabled);
+            if (checkbox) {
+                checkbox.checked = dryRunEnabled;
             }
         }
-        if (cfg.hasOwnProperty('dry_run_cutoff_power_2')) {
-            const el = document.getElementById('dryrunCutoff'); if (el) el.value = cfg.dry_run_cutoff_power_2;
+        // Reconstruct dry_run_cutoff power from 4 separate digits
+        if (cfg.hasOwnProperty('dry_run_cutoff_power_1') && cfg.hasOwnProperty('dry_run_cutoff_power_2') &&
+            cfg.hasOwnProperty('dry_run_cutoff_power_3') && cfg.hasOwnProperty('dry_run_cutoff_power_4')) {
+            const el = document.getElementById('dryrunCutoff');
+            const powerValue = (cfg.dry_run_cutoff_power_1 * 1000) + (cfg.dry_run_cutoff_power_2 * 100) + 
+                              (cfg.dry_run_cutoff_power_3 * 10) + cfg.dry_run_cutoff_power_4;
+            if (el) el.value = powerValue;
         }
         if (cfg.hasOwnProperty('dry_run_cutoff_delay')) {
             const el = document.getElementById('dryrunDelay'); if (el) el.value = cfg.dry_run_cutoff_delay;
@@ -258,9 +313,11 @@ function fetchConfig() {
 
         // Tank
         if (cfg.hasOwnProperty('tank_full_cutoff_protection')) {
-            const btn = document.getElementById('tankToggle');
+            const checkbox = document.getElementById('tankToggle');
             tankFullEnabled = !!cfg.tank_full_cutoff_protection;
-            if (btn) { btn.textContent = tankFullEnabled ? 'Disable' : 'Enable'; btn.classList.toggle('active', tankFullEnabled); }
+            if (checkbox) {
+                checkbox.checked = tankFullEnabled;
+            }
         }
         if (cfg.hasOwnProperty('tank_full_cutoff_level')) {
             const el = document.getElementById('tankCutoff'); if (el) el.value = cfg.tank_full_cutoff_level;
@@ -271,12 +328,19 @@ function fetchConfig() {
 
         // Overload
         if (cfg.hasOwnProperty('overload_cutoff_protection')) {
-            const btn = document.getElementById('overloadToggle');
+            const checkbox = document.getElementById('overloadToggle');
             overloadEnabled = !!cfg.overload_cutoff_protection;
-            if (btn) { btn.textContent = overloadEnabled ? 'Disable' : 'Enable'; btn.classList.toggle('active', overloadEnabled); }
+            if (checkbox) {
+                checkbox.checked = overloadEnabled;
+            }
         }
-        if (cfg.hasOwnProperty('overload_cutoff_power_2')) {
-            const el = document.getElementById('overloadCutoff'); if (el) el.value = cfg.overload_cutoff_power_2;
+        // Reconstruct overload_cutoff power from 4 separate digits
+        if (cfg.hasOwnProperty('overload_cutoff_power_1') && cfg.hasOwnProperty('overload_cutoff_power_2') &&
+            cfg.hasOwnProperty('overload_cutoff_power_3') && cfg.hasOwnProperty('overload_cutoff_power_4')) {
+            const el = document.getElementById('overloadCutoff');
+            const powerValue = (cfg.overload_cutoff_power_1 * 1000) + (cfg.overload_cutoff_power_2 * 100) + 
+                              (cfg.overload_cutoff_power_3 * 10) + cfg.overload_cutoff_power_4;
+            if (el) el.value = powerValue;
         }
         if (cfg.hasOwnProperty('overload_cutoff_delay')) {
             const el = document.getElementById('overloadDelay'); if (el) el.value = cfg.overload_cutoff_delay;
@@ -312,50 +376,22 @@ function saveConfigToServer(payload, cb) {
 
 function updateDryRunProtectionAndSave() {
     updateDryRunProtection();
-    const payload = {
-        dry_run_cutoff_protection: dryRunEnabled ? 1 : 0,
-        dry_run_cutoff_power_2: parseInt(document.getElementById('dryrunCutoff')?.value || 0, 10),
-        dry_run_cutoff_delay: parseInt(document.getElementById('dryrunDelay')?.value || 0, 10)
-    };
-    saveConfigToServer(payload, function(err){
-        const btn = document.getElementById('dryrunUpdateBtn'); if (btn) { btn.textContent = err ? 'Error' : 'Updated'; setTimeout(()=>btn.textContent='Update',1200); }
-    });
 }
 
 function updateTankProtectionAndSave() {
     updateTankProtection();
-    const payload = {
-        tank_full_cutoff_protection: tankFullEnabled ? 1 : 0,
-        tank_full_cutoff_level: parseInt(document.getElementById('tankCutoff')?.value || 1, 10),
-        tank_full_cutoff_delay: parseInt(document.getElementById('tankDelay')?.value || 0, 10)
-    };
-    saveConfigToServer(payload, function(err){
-        const btn = document.getElementById('tankUpdateBtn'); if (btn) { btn.textContent = err ? 'Error' : 'Updated'; setTimeout(()=>btn.textContent='Update',1200); }
-    });
 }
 
 function updateOverloadProtectionAndSave() {
     updateOverloadProtection();
-    const payload = {
-        overload_cutoff_protection: overloadEnabled ? 1 : 0,
-        overload_cutoff_power_2: parseInt(document.getElementById('overloadCutoff')?.value || 0, 10),
-        overload_cutoff_delay: parseInt(document.getElementById('overloadDelay')?.value || 0, 10)
-    };
-    saveConfigToServer(payload, function(err){
-        const btn = document.getElementById('overloadUpdateBtn'); if (btn) { btn.textContent = err ? 'Error' : 'Updated'; setTimeout(()=>btn.textContent='Update',1200); }
-    });
 }
 
 function updateDashboardAndSave() {
     updateDashboard();
-    const payload = { dashboard_style: parseInt(document.getElementById('dashboardSelect')?.value || 1, 10) };
-    saveConfigToServer(payload, function(err){ const btn = document.getElementById('dashboardUpdateBtn'); if (btn) { btn.textContent = err ? 'Error' : 'Updated'; setTimeout(()=>btn.textContent='Update',1200); } });
 }
 
 function updateLedStyleAndSave() {
     updateLedStyle();
-    const payload = { led_strip_style: parseInt(document.getElementById('ledStyleSelect')?.value || 1, 10) };
-    saveConfigToServer(payload, function(err){ const btn = document.getElementById('ledStyleUpdateBtn'); if (btn) { btn.textContent = err ? 'Error' : 'Updated'; setTimeout(()=>btn.textContent='Update',1200); } });
 }
 
 // Optional: send system command (e.g., reset)

@@ -2,6 +2,7 @@
 
 #include "libraries.h"
 #include "data.h"
+#include "reset.h"
 
 uint8_t mui_hrule(mui_t *ui, uint8_t msg);
 uint8_t mui_reset_cb(mui_t *ui, uint8_t msg);
@@ -60,7 +61,7 @@ constexpr fds_t fds_data[] =
                     MUI_STYLE(0)
 
                         MUI_DATA("GP",
-                                 MUI_10 "Pump Dry Run Protection|" MUI_11 "Tank Full Protection|" MUI_12 "Dashboard Selection|" MUI_13 "Scheduler Settings|" MUI_14 "Level Strip Settings|" MUI_15 "Reset controller|")
+                                 MUI_10 "Pump Dry Run Protection|" MUI_16 "Pump Overload Protection|" MUI_11 "Tank Full Protection|" MUI_12 "Dashboard Selection|" MUI_13 "Scheduler Settings|" MUI_14 "Level Strip Settings|" MUI_15 "Reset controller|")
                             MUI_XYA("GC", 5, 25, 0)
                                 MUI_XYA("GC", 5, 37, 1)
                                     MUI_XYA("GC", 5, 49, 2)
@@ -73,7 +74,7 @@ constexpr fds_t fds_data[] =
                 MUI_XY("HR", 0, 13)
                     MUI_STYLE(0)
                         MUI_LABEL(0, 27, "Protection:")
-                            MUI_XYAT("DE", 76, 27, 40, "Enabled|Disabled")
+                            MUI_XYAT("DE", 76, 27, 40, "Disabled|Enabled")
                                 MUI_LABEL(0, 41, "Cutoff Power:")
                                     MUI_XY("DA", 76, 41)
                                         MUI_XY("DB", 85, 41)
@@ -84,6 +85,24 @@ constexpr fds_t fds_data[] =
                                                             MUI_XY("DS", 76, 55)
                                                                 MUI_LABEL(102, 55, "Sec")
 
+    /* Pump Overload Protection */
+    MUI_FORM(16)
+        MUI_STYLE(1)
+            MUI_LABEL(5, 10, "Pump Overload Settings")
+                MUI_XY("HR", 0, 13)
+                    MUI_STYLE(0)
+                        MUI_LABEL(0, 27, "Protection:")
+                            MUI_XYAT("OP", 76, 27, 40, "Disabled|Enabled")
+                                MUI_LABEL(0, 41, "Cutoff Power:")
+                                    MUI_XY("OA", 76, 41)
+                                        MUI_XY("OB", 85, 41)
+                                            MUI_XY("OC", 94, 41)
+                                                MUI_XY("OD", 103, 41)
+                                                    MUI_LABEL(112, 41, "W")
+                                                        MUI_LABEL(0, 55, "Cutoff Delay:")
+                                                            MUI_XY("OS", 76, 55)
+                                                                MUI_LABEL(102, 55, "Sec")
+
     /* Tank Protection selection */
     MUI_FORM(11)
         MUI_STYLE(1)
@@ -91,10 +110,10 @@ constexpr fds_t fds_data[] =
                 MUI_XY("HR", 0, 13)
                     MUI_STYLE(0)
                         MUI_LABEL(0, 27, "Protection:")
-                            MUI_XYAT("TP", 76, 27, 40, "Enabled|Disabled")
+                            MUI_XYAT("TP", 76, 27, 40, "Disabled|Enabled")
                                 MUI_LABEL(0, 41, "Cutoff Level:")
                                     MUI_XY("TL", 76, 41)
-                                        MUI_LABEL(102, 41, "watts")
+                                        MUI_LABEL(102, 41, "Lvl")
                                             MUI_LABEL(0, 55, "Cutoff Delay:")
                                                 MUI_XY("TD", 76, 55)
                                                     MUI_LABEL(102, 55, "Sec")

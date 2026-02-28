@@ -203,6 +203,7 @@ void initialization()
     {
       delay(100);
       comm_error(1, 0, 0);
+      yield();
     }
   }
   showLoadingBar(20, "WiFi Connected");
