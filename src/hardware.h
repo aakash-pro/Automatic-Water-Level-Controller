@@ -11,7 +11,7 @@ extern MUIU8G2 mui;
 extern WiFiUDP ntpUDP;
 extern NTPClient timeClient;
 extern WiFiManager wm;
-extern ESP8266WebServer server;
+extern AsyncWebServer server;
 
 
 

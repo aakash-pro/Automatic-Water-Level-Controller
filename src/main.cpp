@@ -185,7 +185,7 @@ void loop()
     checkpumpdryrunprotection();
     checkpumpoverloadprotection();
     handleBeep();
-    handleWebServer();
+    
   }
   
   

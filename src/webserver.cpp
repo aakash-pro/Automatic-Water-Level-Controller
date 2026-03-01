@@ -1,6 +1,6 @@
 #include "webserver.h"
 
-ESP8266WebServer server(80);
+AsyncWebServer server(80);
 
 // ── Helper: Uptime ───────────────────────────────────────────────────
 void formatUptime(char* buf, size_t size) {
@@ -21,8 +21,13 @@ int getSignalQuality(int rssi) {
 // ── Init Web Server ──────────────────────────────────────────────────
 void initWebServer() {
 
+    if (!LittleFS.begin()) {
+    
+        return;
+    }
+
     // ── API: GET device info ─────────────────────────────────────────
-    server.on("/api/device", HTTP_GET, []() {
+    server.on("/api/device", HTTP_GET, [](AsyncWebServerRequest *request) {
         StaticJsonDocument<512> doc;
         char uptime[32];
         formatUptime(uptime, sizeof(uptime));
@@ -35,11 +40,11 @@ void initWebServer() {
         doc["uptime"]       = uptime;
         String json;
         serializeJson(doc, json);
-        server.send(200, "application/json", json);
+        request->send(200, "application/json", json);
     });
 
     // ── API: GET network info ────────────────────────────────────────
-    server.on("/api/network", HTTP_GET, []() {
+    server.on("/api/network", HTTP_GET, [](AsyncWebServerRequest *request) {
         StaticJsonDocument<512> doc;
         doc["ssid"]           = WiFi.SSID();
         doc["ip"]             = WiFi.localIP().toString();
@@ -50,11 +55,11 @@ void initWebServer() {
         doc["signal_quality"] = getSignalQuality(WiFi.RSSI());
         String json;
         serializeJson(doc, json);
-        server.send(200, "application/json", json);
+        request->send(200, "application/json", json);
     });
 
     // ── API: GET sensor data ─────────────────────────────────────────
-    server.on("/api/sensors", HTTP_GET, []() {
+    server.on("/api/sensors", HTTP_GET, [](AsyncWebServerRequest *request) {
         StaticJsonDocument<512> doc;
         JsonArray levels = doc.createNestedArray("waterLevel");
         for (int i = 0; i < 8; i++) levels.add(waterLevel[i]);
@@ -72,11 +77,11 @@ void initWebServer() {
         doc["yesterdayEnergy"]= yesterdayEnergy;
         String json;
         serializeJson(doc, json);
-        server.send(200, "application/json", json);
+        request->send(200, "application/json", json);
     });
 
     // ── API: GET config ──────────────────────────────────────────────
-    server.on("/api/config", HTTP_GET, []() {
+    server.on("/api/config", HTTP_GET, [](AsyncWebServerRequest *request) {
         StaticJsonDocument<512> doc;
         doc["dry_run_cutoff_protection"]  = dry_run_cutoff_protection;
         doc["dry_run_cutoff_power_1"]     = dry_run_cutoff_power_1;
@@ -97,19 +102,19 @@ void initWebServer() {
         doc["overload_cutoff_delay"]      = overload_cutoff_delay;
         String json;
         serializeJson(doc, json);
-        server.send(200, "application/json", json);
+        request->send(200, "application/json", json);
     });
 
     // ── API: POST config ─────────────────────────────────────────────
-    server.on("/api/config", HTTP_POST, []() {
-        if (!server.hasArg("plain")) {
-            server.send(400, "application/json", "{\"error\":\"No body\"}");
+    server.on("/api/config", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (!request->hasArg("plain")) {
+            request->send(400, "application/json", "{\"error\":\"No body\"}");
             return;
         }
         StaticJsonDocument<512> doc;
-        DeserializationError err = deserializeJson(doc, server.arg("plain"));
+        DeserializationError err = deserializeJson(doc, request->arg("plain"));
         if (err) {
-            server.send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+            request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
             return;
         }
 
@@ -190,72 +195,71 @@ void initWebServer() {
         }
 
         saveValuesToEEPROM();
-        server.send(200, "application/json", "{\"status\":\"ok\"}");
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
     });
 
     // ── API: GET pump state ──────────────────────────────────────────
-    server.on("/api/pump", HTTP_GET, []() {
+    server.on("/api/pump", HTTP_GET, [](AsyncWebServerRequest *request) {
         StaticJsonDocument<64> doc;
         doc["state"]          = pump_running;
         doc["lastKnownState"] = pumpCtx.lastKnownState;
         String json;
         serializeJson(doc, json);
-        server.send(200, "application/json", json);
+        request->send(200, "application/json", json);
     });
 
     // ── API: POST pump control ───────────────────────────────────────
-    server.on("/api/pump", HTTP_POST, []() {
-        if (!server.hasArg("plain")) {
-            server.send(400, "application/json", "{\"error\":\"No body\"}");
+    server.on("/api/pump", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (!request->hasArg("plain")) {
+            request->send(400, "application/json", "{\"error\":\"No body\"}");
             return;
         }
         StaticJsonDocument<64> doc;
-        DeserializationError err = deserializeJson(doc, server.arg("plain"));
+        DeserializationError err = deserializeJson(doc, request->arg("plain"));
         if (err) {
-            server.send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+            request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
             return;
         }
         if (!doc.containsKey("state")) {
-            server.send(400, "application/json", "{\"error\":\"Missing state\"}");
+            request->send(400, "application/json", "{\"error\":\"Missing state\"}");
             return;
         }
         bool requestedState = doc["state"];
         if (requestedState)
         { turnOnPumpAsync(); }
         else { turnOffPumpAsync(); }
-        server.send(200, "application/json", "{\"status\":\"ok\"}");
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
     });
 
     // ── API: POST system commands ────────────────────────────────────
-    server.on("/api/system", HTTP_POST, []() {
-        if (!server.hasArg("plain")) {
-            server.send(400, "application/json", "{\"error\":\"No body\"}");
+    server.on("/api/system", HTTP_POST, [](AsyncWebServerRequest *request) {
+        if (!request->hasArg("plain")) {
+            request->send(400, "application/json", "{\"error\":\"No body\"}");
             return;
         }
         StaticJsonDocument<128> doc;
-        DeserializationError err = deserializeJson(doc, server.arg("plain"));
+        DeserializationError err = deserializeJson(doc, request->arg("plain"));
         if (err) {
-            server.send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+            request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
             return;
         }
         const char* cmd = doc["command"];
         if (!cmd) {
-            server.send(400, "application/json", "{\"error\":\"Missing command\"}");
+            request->send(400, "application/json", "{\"error\":\"Missing command\"}");
             return;
         }
         if (strcmp(cmd, "reset") == 0) {
-            server.send(200, "application/json", "{\"status\":\"resetting\"}");
+            request->send(200, "application/json", "{\"status\":\"resetting\"}");
             reset();
-            server.client().flush();
         }
         else {
-            server.send(400, "application/json", "{\"error\":\"Unknown command\"}");
+            request->send(400, "application/json", "{\"error\":\"Unknown command\"}");
         }
     });
 
     // ── Static files + 404 — single generic handler ──────────────────
-    server.onNotFound([]() {
-        String path = server.uri();
+    server.onNotFound([](AsyncWebServerRequest *request) {
+        String path = request->url();
         if (path == "/") path = "/index.html";
 
         String mime = "text/plain";
@@ -267,18 +271,17 @@ void initWebServer() {
         else if (path.endsWith(".png"))  mime = "image/png";
 
         if (LittleFS.exists(path)) {
-            File file = LittleFS.open(path, "r");
-            server.streamFile(file, mime);
-            file.close();
-            return;
+        request->send(LittleFS, path, mime);  // ← correct: filesystem, path, mime
+        return;
+    }
+        // Return API error for API endpoints, 404 HTML for others
+        if (path.startsWith("/api/")) {
+            request->send(404, "application/json", "{\"error\":\"Not found\"}");
+        } else {
+            request->send(404, "text/html", "<html><body><h1>404 Not Found</h1><p>File not found: " + path + "</p></body></html>");
         }
-        server.send(404, "application/json", "{\"error\":\"Not found\"}");
     });
 
     server.begin();
 }
 
-// ── Handle client ────────────────────────────────────────────────────
-void handleWebServer() {
-    server.handleClient();
-}
