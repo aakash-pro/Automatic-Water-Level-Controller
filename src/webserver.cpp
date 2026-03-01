@@ -106,97 +106,106 @@ void initWebServer() {
     });
 
     // ── API: POST config ─────────────────────────────────────────────
-    server.on("/api/config", HTTP_POST, [](AsyncWebServerRequest *request) {
-        if (!request->hasArg("plain")) {
-            request->send(400, "application/json", "{\"error\":\"No body\"}");
-            return;
-        }
-        StaticJsonDocument<512> doc;
-        DeserializationError err = deserializeJson(doc, request->arg("plain"));
-        if (err) {
-            request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
-            return;
-        }
+    server.on("/api/config", HTTP_POST, 
+        [](AsyncWebServerRequest *request) {
+            // Request handler (called immediately)
+        },
+        nullptr,  // File upload handler
+        [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+            // Body callback - handles raw JSON body
+            static String bodyBuffer = "";
+            if (index == 0) bodyBuffer = "";  // Start of body
+            bodyBuffer += String((char*)data).substring(0, len);
+            
+            if (index + len == total) {  // End of body received
+                StaticJsonDocument<512> doc;
+                DeserializationError err = deserializeJson(doc, bodyBuffer);
+                if (err) {
+                    request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+                    return;
+                }
 
-        // dry run
-        if (doc.containsKey("dry_run_cutoff_protection")) {
-            uint8_t val = doc["dry_run_cutoff_protection"];
-            if (val <= 1) dry_run_cutoff_protection = val;
-        }
-        if (doc.containsKey("dry_run_cutoff_power_1")) {
-            uint8_t val = doc["dry_run_cutoff_power_1"];
-            if (val <= 1) dry_run_cutoff_power_1 = val;      // max 1 — thousands digit
-        }
-        if (doc.containsKey("dry_run_cutoff_power_2")) {
-            uint8_t val = doc["dry_run_cutoff_power_2"];
-            if (val <= 9) dry_run_cutoff_power_2 = val;
-        }
-        if (doc.containsKey("dry_run_cutoff_power_3")) {
-            uint8_t val = doc["dry_run_cutoff_power_3"];
-            if (val <= 9) dry_run_cutoff_power_3 = val;
-        }
-        if (doc.containsKey("dry_run_cutoff_power_4")) {
-            uint8_t val = doc["dry_run_cutoff_power_4"];
-            if (val <= 9) dry_run_cutoff_power_4 = val;
-        }
-        if (doc.containsKey("dry_run_cutoff_delay")) {
-            uint8_t val = doc["dry_run_cutoff_delay"];
-            if (val <= 60) dry_run_cutoff_delay = val;
-        }
+                // dry run
+                if (doc.containsKey("dry_run_cutoff_protection")) {
+                    uint8_t val = doc["dry_run_cutoff_protection"];
+                    if (val <= 1) dry_run_cutoff_protection = val;
+                }
+                if (doc.containsKey("dry_run_cutoff_power_1")) {
+                    uint8_t val = doc["dry_run_cutoff_power_1"];
+                    if (val <= 1) dry_run_cutoff_power_1 = val;      // max 1 — thousands digit
+                }
+                if (doc.containsKey("dry_run_cutoff_power_2")) {
+                    uint8_t val = doc["dry_run_cutoff_power_2"];
+                    if (val <= 9) dry_run_cutoff_power_2 = val;
+                }
+                if (doc.containsKey("dry_run_cutoff_power_3")) {
+                    uint8_t val = doc["dry_run_cutoff_power_3"];
+                    if (val <= 9) dry_run_cutoff_power_3 = val;
+                }
+                if (doc.containsKey("dry_run_cutoff_power_4")) {
+                    uint8_t val = doc["dry_run_cutoff_power_4"];
+                    if (val <= 9) dry_run_cutoff_power_4 = val;
+                }
+                if (doc.containsKey("dry_run_cutoff_delay")) {
+                    uint8_t val = doc["dry_run_cutoff_delay"];
+                    if (val <= 60) dry_run_cutoff_delay = val;
+                }
 
-        // tank full
-        if (doc.containsKey("tank_full_cutoff_protection")) {
-            uint8_t val = doc["tank_full_cutoff_protection"];
-            if (val <= 1) tank_full_cutoff_protection = val;
-        }
-        if (doc.containsKey("tank_full_cutoff_level")) {
-            uint8_t val = doc["tank_full_cutoff_level"];
-            if (val >= 1 && val <= 8) tank_full_cutoff_level = val;
-        }
-        if (doc.containsKey("tank_full_cutoff_delay")) {
-            uint8_t val = doc["tank_full_cutoff_delay"];
-            if (val <= 200) tank_full_cutoff_delay = val;
-        }
+                // tank full
+                if (doc.containsKey("tank_full_cutoff_protection")) {
+                    uint8_t val = doc["tank_full_cutoff_protection"];
+                    if (val <= 1) tank_full_cutoff_protection = val;
+                }
+                if (doc.containsKey("tank_full_cutoff_level")) {
+                    uint8_t val = doc["tank_full_cutoff_level"];
+                    if (val >= 1 && val <= 8) tank_full_cutoff_level = val;
+                }
+                if (doc.containsKey("tank_full_cutoff_delay")) {
+                    uint8_t val = doc["tank_full_cutoff_delay"];
+                    if (val <= 200) tank_full_cutoff_delay = val;
+                }
 
-        // overload
-        if (doc.containsKey("overload_cutoff_protection")) {
-            uint8_t val = doc["overload_cutoff_protection"];
-            if (val <= 1) overload_cutoff_protection = val;
-        }
-        if (doc.containsKey("overload_cutoff_power_1")) {
-            uint8_t val = doc["overload_cutoff_power_1"];
-            if (val <= 1) overload_cutoff_power_1 = val;     // max 1 — thousands digit
-        }
-        if (doc.containsKey("overload_cutoff_power_2")) {
-            uint8_t val = doc["overload_cutoff_power_2"];
-            if (val <= 9) overload_cutoff_power_2 = val;
-        }
-        if (doc.containsKey("overload_cutoff_power_3")) {
-            uint8_t val = doc["overload_cutoff_power_3"];
-            if (val <= 9) overload_cutoff_power_3 = val;
-        }
-        if (doc.containsKey("overload_cutoff_power_4")) {
-            uint8_t val = doc["overload_cutoff_power_4"];
-            if (val <= 9) overload_cutoff_power_4 = val;
-        }
-        if (doc.containsKey("overload_cutoff_delay")) {
-            uint8_t val = doc["overload_cutoff_delay"];
-            if (val <= 60) overload_cutoff_delay = val;
-        }
+                // overload
+                if (doc.containsKey("overload_cutoff_protection")) {
+                    uint8_t val = doc["overload_cutoff_protection"];
+                    if (val <= 1) overload_cutoff_protection = val;
+                }
+                if (doc.containsKey("overload_cutoff_power_1")) {
+                    uint8_t val = doc["overload_cutoff_power_1"];
+                    if (val <= 1) overload_cutoff_power_1 = val;     // max 1 — thousands digit
+                }
+                if (doc.containsKey("overload_cutoff_power_2")) {
+                    uint8_t val = doc["overload_cutoff_power_2"];
+                    if (val <= 9) overload_cutoff_power_2 = val;
+                }
+                if (doc.containsKey("overload_cutoff_power_3")) {
+                    uint8_t val = doc["overload_cutoff_power_3"];
+                    if (val <= 9) overload_cutoff_power_3 = val;
+                }
+                if (doc.containsKey("overload_cutoff_power_4")) {
+                    uint8_t val = doc["overload_cutoff_power_4"];
+                    if (val <= 9) overload_cutoff_power_4 = val;
+                }
+                if (doc.containsKey("overload_cutoff_delay")) {
+                    uint8_t val = doc["overload_cutoff_delay"];
+                    if (val <= 60) overload_cutoff_delay = val;
+                }
 
-        // display
-        if (doc.containsKey("dashboard_style")) {
-            uint8_t val = doc["dashboard_style"];
-            if (val >= 1 && val <= 4) dashboard_style = val;
-        }
-        if (doc.containsKey("led_strip_style")) {
-            uint8_t val = doc["led_strip_style"];
-            if (val >= 1 && val <= 4) led_strip_style = val;
-        }
+                // display
+                if (doc.containsKey("dashboard_style")) {
+                    uint8_t val = doc["dashboard_style"];
+                    if (val >= 1 && val <= 4) dashboard_style = val;
+                }
+                if (doc.containsKey("led_strip_style")) {
+                    uint8_t val = doc["led_strip_style"];
+                    if (val >= 1 && val <= 4) led_strip_style = val;
+                }
 
-        saveValuesToEEPROM();
-        request->send(200, "application/json", "{\"status\":\"ok\"}");
-    });
+                saveValuesToEEPROM();
+                request->send(200, "application/json", "{\"status\":\"ok\"}");
+            }
+        }
+    );
 
     // ── API: GET pump state ──────────────────────────────────────────
     server.on("/api/pump", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -209,56 +218,74 @@ void initWebServer() {
     });
 
     // ── API: POST pump control ───────────────────────────────────────
-    server.on("/api/pump", HTTP_POST, [](AsyncWebServerRequest *request) {
-        if (!request->hasArg("plain")) {
-            request->send(400, "application/json", "{\"error\":\"No body\"}");
-            return;
+    server.on("/api/pump", HTTP_POST,
+        [](AsyncWebServerRequest *request) {
+            // Request handler (called immediately)
+        },
+        nullptr,  // File upload handler
+        [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+            // Body callback - handles raw JSON body
+            static String bodyBuffer = "";
+            if (index == 0) bodyBuffer = "";  // Start of body
+            bodyBuffer += String((char*)data).substring(0, len);
+            
+            if (index + len == total) {  // End of body received
+                StaticJsonDocument<64> doc;
+                DeserializationError err = deserializeJson(doc, bodyBuffer);
+                if (err) {
+                    request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+                    return;
+                }
+                if (!doc.containsKey("state")) {
+                    request->send(400, "application/json", "{\"error\":\"Missing state\"}");
+                    return;
+                }
+                bool requestedState = doc["state"];
+                if (requestedState)
+                { turnOnPumpAsync(); }
+                else { turnOffPumpAsync(); }
+                request->send(200, "application/json", "{\"status\":\"ok\"}");
+            }
         }
-        StaticJsonDocument<64> doc;
-        DeserializationError err = deserializeJson(doc, request->arg("plain"));
-        if (err) {
-            request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
-            return;
-        }
-        if (!doc.containsKey("state")) {
-            request->send(400, "application/json", "{\"error\":\"Missing state\"}");
-            return;
-        }
-        bool requestedState = doc["state"];
-        if (requestedState)
-        { turnOnPumpAsync(); }
-        else { turnOffPumpAsync(); }
-        request->send(200, "application/json", "{\"status\":\"ok\"}");
-    });
+    );
 
     // ── API: POST system commands ────────────────────────────────────
-    server.on("/api/system", HTTP_POST, [](AsyncWebServerRequest *request) {
-        if (!request->hasArg("plain")) {
-            request->send(400, "application/json", "{\"error\":\"No body\"}");
-            return;
+    server.on("/api/system", HTTP_POST,
+        [](AsyncWebServerRequest *request) {
+            // Request handler (called immediately)
+        },
+        nullptr,  // File upload handler
+        [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+            // Body callback - handles raw JSON body
+            static String bodyBuffer = "";
+            if (index == 0) bodyBuffer = "";  // Start of body
+            bodyBuffer += String((char*)data).substring(0, len);
+            
+            if (index + len == total) {  // End of body received
+                StaticJsonDocument<128> doc;
+                DeserializationError err = deserializeJson(doc, bodyBuffer);
+                if (err) {
+                    request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+                    return;
+                }
+                const char* cmd = doc["command"];
+                if (!cmd) {
+                    request->send(400, "application/json", "{\"error\":\"Missing command\"}");
+                    return;
+                }
+                if (strcmp(cmd, "reset") == 0) {
+                    request->send(200, "application/json", "{\"status\":\"resetting\"}");
+                    reset();
+                }
+                else {
+                    request->send(400, "application/json", "{\"error\":\"Unknown command\"}");
+                }
+            }
         }
-        StaticJsonDocument<128> doc;
-        DeserializationError err = deserializeJson(doc, request->arg("plain"));
-        if (err) {
-            request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
-            return;
-        }
-        const char* cmd = doc["command"];
-        if (!cmd) {
-            request->send(400, "application/json", "{\"error\":\"Missing command\"}");
-            return;
-        }
-        if (strcmp(cmd, "reset") == 0) {
-            request->send(200, "application/json", "{\"status\":\"resetting\"}");
-            reset();
-        }
-        else {
-            request->send(400, "application/json", "{\"error\":\"Unknown command\"}");
-        }
-    });
+    );
 
-    // ── Static files + 404 — single generic handler ──────────────────
-    server.onNotFound([](AsyncWebServerRequest *request) {
+    // ── Static files — fast direct routing ──────────────────────────
+    server.on("/*", HTTP_GET, [](AsyncWebServerRequest *request) {
         String path = request->url();
         if (path == "/") path = "/index.html";
 
@@ -271,15 +298,18 @@ void initWebServer() {
         else if (path.endsWith(".png"))  mime = "image/png";
 
         if (LittleFS.exists(path)) {
-        request->send(LittleFS, path, mime);  // ← correct: filesystem, path, mime
-        return;
-    }
-        // Return API error for API endpoints, 404 HTML for others
-        if (path.startsWith("/api/")) {
-            request->send(404, "application/json", "{\"error\":\"Not found\"}");
-        } else {
-            request->send(404, "text/html", "<html><body><h1>404 Not Found</h1><p>File not found: " + path + "</p></body></html>");
+            request->send(LittleFS, path, mime);
+            return;
         }
+
+        // Return API error for API endpoints, 404 HTML for others
+        if (path.startsWith("/api/")) {request->send(404, "application/json", "{\"error\":\"Not found\"}");} 
+    });
+
+    // ── Fallback: 404 handler for unmatched routes ──────────────────
+    server.onNotFound([](AsyncWebServerRequest *request) {
+        String path = request->url();
+        request->send(404, "text/html", "<html><body><h1>404 Not Found</h1><p>File not found: " + path + "</p></body></html>");
     });
 
     server.begin();
